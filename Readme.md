@@ -41,5 +41,5 @@ You can use VS code with platformIO or Arduino to compile the code and upload it
 - Cleanup of Convertion / Usage of Data types 
 - Input validation improvements from user (e.g. A0)
 - Prevent placing ships on top of each other
-- Prebent placing ships out of the grid
+- Prevent placing ships out of the grid
 
