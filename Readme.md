@@ -24,6 +24,7 @@ You can use VS code with platformIO or Arduino to compile the code and upload it
 - Go to your project lib dependency TFT_eSPI folder (`.. \Documents\PlatformIO\Projects\battleship_io\.pio\libdeps\esp32dev\TFT_eSPI`) and place the file `User_Setup.h` there.
 - Do this for both project folders battleship_io and battleship_io_client!
 - Change the texts in .cpp files according to your language.
+- Change the MAC addresses in communication.cpp to the MAC addresses of your ESP32s.
 
 ## Using Arduino
 - Download the project and put it into your Arduino project folder. Rename battleship.cpp and battleship_client.cpp to battleship.ino and battleship_client.ino.
@@ -32,6 +33,7 @@ You can use VS code with platformIO or Arduino to compile the code and upload it
 - Go to your project lib dependency folder (usually `\Dokumente\Arduino\libraries`) and place the file `lv_conf.h` there.
 - Go to your project lib dependency TFT_eSPI folder (`..\Dokumente\Arduino\libraries\TFT_eSPI`) and place the file `User_Setup.h` there.
 - Change the texts in .ino and .cpp files according to your language.
+- Change the MAC addresses in communication.cpp to the MAC addresses of your ESP32s.
 
 ## Additional hints
 - In case the touch is off try to calibrate your touchscreen using this demo: https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display/blob/main/Examples/Basics/2-TouchTest/2-TouchTest.ino <br> Then adapt the Xmin/Xmax and Xmin/Xmax values in the `display_communication.cpp:` <br> `touchX = map(p.x, "Xmin", "Xmax", 1, screenWidth);  /* Touchscreen X calibration */`<br> 
