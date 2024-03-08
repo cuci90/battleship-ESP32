@@ -36,3 +36,10 @@ You can use VS code with platformIO or Arduino to compile the code and upload it
 ## Additional hints
 - In case the touch is off try to calibrate your touchscreen using this demo: https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display/blob/main/Examples/Basics/2-TouchTest/2-TouchTest.ino <br> Then adapt the Xmin/Xmax and Xmin/Xmax values in the `display_communication.cpp:` <br> `touchX = map(p.x, "Xmin", "Xmax", 1, screenWidth);  /* Touchscreen X calibration */`<br> 
     `touchY = map(p.y, "Ymin", "Ymax", 1, screenHeight); /* Touchscreen X calibration */`
+
+### To Do's
+- Cleanup of Convertion / Usage of Data types 
+- Input validation improvements from user (e.g. A0)
+- Prevent placing ships on top of each other
+- Prebent placing ships out of the grid
+
