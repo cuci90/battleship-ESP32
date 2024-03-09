@@ -2,6 +2,11 @@
 
 ## Introduction
 This is a battlehisp game using ESP32-2432S028R (CYD).  WS2812 LED stripe is used to display the hits on the battlefield.
+
+
+<img src="https://github.com/cuci90/battleship-ESP32/assets/13102651/ffd9e8f7-60af-4ad7-81c7-00413b378125" width=50%>
+
+
 Follow the instructions on instructables to build one for you own:
 
 ## Dependencies
