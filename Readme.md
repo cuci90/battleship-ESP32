@@ -9,7 +9,7 @@ This is a battlehisp game using ESP32-2432S028R (CYD).  WS2812 LED stripe is use
 
 Follow the instructions on instructables to build one for you own:
 
-## Dependencies
+## Used Libraries
 https://github.com/lvgl/lvgl <br>
 https://github.com/Bodmer/TFT_eSPI <br>
 https://github.com/PaulStoffregen/XPT2046_Touchscreen <br>
