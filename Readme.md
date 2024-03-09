@@ -7,7 +7,7 @@ This is a battlehisp game using ESP32-2432S028R (CYD).  WS2812 LED stripe is use
 <img src="https://github.com/cuci90/battleship-ESP32/assets/13102651/ffd9e8f7-60af-4ad7-81c7-00413b378125" width=50%>
 
 
-Follow the instructions on instructables to build one for you own:
+Follow the instructions on instructables to build one for you own: https://www.instructables.com/Battleship-Computer-With-ESP32-WS2812-LED-Stripe/
 
 ## Used Libraries
 https://github.com/lvgl/lvgl <br>
