@@ -44,9 +44,10 @@ You can use VS code with platformIO or Arduino to compile the code and upload it
 - In case the touch is off try to calibrate your touchscreen using this demo: https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display/blob/main/Examples/Basics/2-TouchTest/2-TouchTest.ino <br> Then adapt the Xmin/Xmax and Xmin/Xmax values in the `display_communication.cpp:` <br> `touchX = map(p.x, "Xmin", "Xmax", 1, screenWidth);  /* Touchscreen X calibration */`<br> 
     `touchY = map(p.y, "Ymin", "Ymax", 1, screenHeight); /* Touchscreen X calibration */`
 
-### To Do's
-- Cleanup of Convertion / Usage of Data types 
-- Input validation improvements from user (e.g. A0)
-- Prevent placing ships on top of each other
-- Prevent placing ships out of the grid
+## Updates (08.02.2026)
+- LVGL 9.4 Support
+- Added Function: ships cannot be placed out of the grid
+- Added Function: ships cannot overlap
+- Added weapons choice with rockets
+- Cleanup of Convertion / Usage of Data types
 
