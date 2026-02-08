@@ -24,6 +24,16 @@ int players_round = 0; // players turn - which player is shooting next, start wi
 unsigned long lastSendTime = 0;
 const unsigned long sendInterval = 5000; // 5 seconds
 
+char show_text[] = "show_text";
+char ship_setup[] = "ship_setup";
+char coordinates_msg[] = "coordinates";
+char PreviewLED[] = "PreviewLED";
+char HitLED[] = "HitLED";
+char MissedLED[] = "MissedLED";
+char ship_status[] = "ship_status";
+char empty[] ="";
+
+
 Player players[2]; // Array to store players
 
 void initializeGame();
@@ -37,6 +47,9 @@ bool isGameOver(int playerIndex);
 void receiveShootCommand();
 void printBattlefield(int playerIndex);
 void displayHits(int playerIndex);
+
+
+
 
 void initializeGame()
 {
@@ -64,7 +77,9 @@ void initializeGame()
       setupShip(i, j);
     }
     // tell player 2 to wait - as player 1 will be first to set up his ships
-    sendMessage("show_text", waiting_player1);
+    delay(500); 
+    //sendMessage("show_text", waiting_player1);
+
   }
 }
 
@@ -86,7 +101,7 @@ void setupShip(int playerIndex, int shipIndex)
   {
 
     // tell player 2 to wait
-    sendMessage("show_text", waiting_player1);
+    sendMessage(show_text, waiting_player1);
 
     // load orientation screen
     loadScreen3(getShipName(shipIndex));
@@ -124,24 +139,100 @@ void setupShip(int playerIndex, int shipIndex)
       // Length of coordinates not longer then 2; first character must be alpha; second character must be numeric; (if third character is 0 then 2nd char must be 1 (because only 0 is allowed e.g. A10)) or length =2, so e.g. B7
       if (coordinates.length() >= 2 && isalpha(coordinates[0]) && isdigit(coordinates[1]) && ((coordinates[2] == '0' && coordinates[1] == '1') || coordinates.length() == 2))
       {
-        ship.startX = coordinates[0] - 'A';
-        ship.startY = 0;
+        // Validate that the ship does not exceed the board depending on orientation
+        bool validPlacement = false;
+        bool overlap = false;
+        // help variables
+        int startX = coordinates[0] - 'A';
+        int ship_startY = 0;
+        // calculate ship_startY for several validations
         for (size_t i = 1; i < coordinates.length(); ++i)
+        // this handles in case of Y coordinate is 10
         {
           if (isdigit(coordinates[i]))
           {
-            ship.startY = ship.startY * 10 + (coordinates[i] - '0');
-          }
-          else
-          {
-
-            // Handle non-digit characters in the numeric part
-            Serial.println("Invalid input. Please enter in the format 'A1' to 'J10'.");
-            return;
+            ship_startY = ship_startY * 10 + (coordinates[i] - '0');
           }
         }
-        ship.startY -= 1; // Adjust for 0-based indexing
-        break;
+        ship_startY -= 1; // Adjust for 0-based indexing
+
+        // space in the code for visual separation
+        // space
+        // space
+        // space
+        // space
+        // space
+
+        if (ship.orientation == 'H')
+        {
+          // check ship out of bounds for horizontally for the borad
+          if ((coordinates[0] - 'A' + ship.size) <= BOARD_SIZE)
+          {
+            // check if ships are placed on top of each other
+            for (int k = 0; k < ship.size; ++k)
+            {
+              if (players[playerIndex].battlefield[startX + k][ship_startY] == 'S')
+              {
+                overlap = true;
+                break;
+              }
+            }
+            if (overlap == false)
+            {
+              validPlacement = true;
+            }
+          }
+        }
+        else if (ship.orientation == 'V')
+        {
+           // check ship out of bounds for horizontally for the borad
+          if ((ship_startY + ship.size) <= BOARD_SIZE)
+          {
+            // check if ships are placed on top of each other
+            for (int k = 0; k < ship.size; ++k)
+            {
+              if (players[playerIndex].battlefield[startX][ship_startY + k] == 'S')
+              {
+                overlap = true;
+                break;
+              }
+            }
+
+            if (overlap == false)
+            {
+              validPlacement = true;
+            }
+
+
+          }
+        }
+
+        // Serial.println ("Placement valid: " + String(validPlacement));
+
+        if (validPlacement)
+        {
+
+          ship.startX = coordinates[0] - 'A';
+          ship.startY = 0;
+          for (size_t i = 1; i < coordinates.length(); ++i)
+          {
+            if (isdigit(coordinates[i]))
+            {
+
+              ship.startY = ship.startY * 10 + (coordinates[i] - '0');
+            }
+            else
+            {
+
+              // Handle non-digit characters in the numeric part
+              Serial.println("Invalid input. Please enter in the format 'A1' to 'J10'.");
+              return;
+            }
+          }
+          ship.startY -= 1; // Adjust for 0-based indexing
+
+          break;
+        }
       }
     }
     // clearScreen
@@ -153,7 +244,7 @@ void setupShip(int playerIndex, int shipIndex)
     loadScreen2(waiting_player2);
     char shipName[32];
     getShipName(shipIndex).toCharArray(shipName, sizeof(shipName));
-    sendMessage("ship_setup", shipName);
+    sendMessage(ship_setup, shipName);
 
     while (message_received == false)
     { // wait until message received - this variable is changed in communications.cpp-> OnDataRecv() once user has put in the coordinates
@@ -239,9 +330,8 @@ void processShootCommand(int playerIndex, int opponentIndex, int shotX, int shot
     // send command to show on player 2 LED matix
     int coordX = shotX;
     int coordY = shotY;
-    
 
-    sendMessage("PreviewLED", "", coordX, coordY);
+    sendMessage(PreviewLED, empty, coordX, coordY);
     // Wait 3 sec for the other display to show the animation
     delay(3200);
   }
@@ -277,7 +367,7 @@ void processShootCommand(int playerIndex, int opponentIndex, int shotX, int shot
           int coordX = shotX;
           int coordY = shotY;
 
-          sendMessage("HitLED", "", coordX, coordY);
+          sendMessage(HitLED, empty, coordX, coordY);
           delay(100);
         }
 
@@ -287,7 +377,7 @@ void processShootCommand(int playerIndex, int opponentIndex, int shotX, int shot
         String ship_hit_text = ship_hit + " " + String(char(shotX + 65)) + String(shotY + 1); // convert the int coordinates back to aphlanumeric
         char ship_hit_player2[32];
         strcpy(ship_hit_player2, ship_hit_text.c_str());
-        sendMessage("show_text", ship_hit_player2);
+        sendMessage(show_text, ship_hit_player2);
 
         // show on player 1 screen
         Serial.println("Zeige auf player 1 screen <<<<<<<<<");
@@ -304,7 +394,7 @@ void processShootCommand(int playerIndex, int opponentIndex, int shotX, int shot
           // tell player 2 as well. Some conversion of the text necessary
           char ship_destroyed_player2[32];
           strcpy(ship_destroyed_player2, ship_name_destroyed.c_str());
-          sendMessage("show_text", ship_destroyed_player2);
+          sendMessage(show_text, ship_destroyed_player2);
 
           // show on player 1 screen
           loadScreen2(ship_name_destroyed.c_str()); // convert String to Char*
@@ -330,7 +420,7 @@ void processShootCommand(int playerIndex, int opponentIndex, int shotX, int shot
           int coordX = shotX;
           int coordY = shotY;
 
-          sendMessage("HitLED", "", coordX, coordY);
+          sendMessage(HitLED, empty, coordX, coordY);
           delay(100);
         }
 
@@ -340,7 +430,7 @@ void processShootCommand(int playerIndex, int opponentIndex, int shotX, int shot
         String ship_hit_text = ship_hit + " " + String(char(shotX + 65)) + String(shotY + 1); // convert the int coordinates back to aphlanumeric
         char ship_hit_player2[32];
         strcpy(ship_hit_player2, ship_hit_text.c_str());
-        sendMessage("show_text", ship_hit_player2);
+        sendMessage(show_text, ship_hit_player2);
 
         Serial.println("Zeige auf player 1 screen <<<<<<<<<");
         // show on screen for player1
@@ -356,7 +446,7 @@ void processShootCommand(int playerIndex, int opponentIndex, int shotX, int shot
           // tell player 2 as well. Some conversion of the text necessary
           char ship_destroyed_player2[32];
           strcpy(ship_destroyed_player2, ship_name_destroyed.c_str());
-          sendMessage("show_text", ship_destroyed_player2);
+          sendMessage(show_text, ship_destroyed_player2);
 
           // show on player 1 screen
           loadScreen2(ship_name_destroyed.c_str()); // convert String to Char*
@@ -393,21 +483,31 @@ void processShootCommand(int playerIndex, int opponentIndex, int shotX, int shot
       int coordX = shotX;
       int coordY = shotY;
 
-      sendMessage("MissedLED", "", coordX, coordY);
+      sendMessage(MissedLED, empty, coordX, coordY);
     }
 
     // tell player 2
     String missed_text = ship_missed + " " + String(char(shotX + 65)) + String(shotY + 1); // convert the int coordinates back to aphlanumeric
     char missed_player2[16];
     strcpy(missed_player2, missed_text.c_str());
-    sendMessage("show_text", missed_player2);
+    sendMessage(show_text, missed_player2);
     // sendMessage("show_text", ship_missed_player2);
 
     // show on player 1 screen
     loadScreen2(missed_text.c_str());
     clearScreen();
+
+    // neu
+    if (use_rockets == 1 || use_rockets == 2) {
+      Serial.println("Rocket used - shoot again");
+   
+    }
+    else
+    {
+      players_round = 1 - players_round;
+    }
     // switch to next player
-    players_round = 1 - players_round;
+   
   }
 }
 
@@ -427,9 +527,49 @@ void getUserInputForShootCommand(int &shotX, int &shotY, int playerIndex)
     player2_ship_status.toCharArray(player2_ship_status_char, sizeof(player2_ship_status_char)); // convert String to Char[32]
     Serial.print("Array Content:");
     Serial.println(player2_ship_status);
-    sendMessage("ship_status", player2_ship_status_char);
-    sendMessage("show_text", waiting_player1);
-    player2_ship_status =""; // clean the ship status text for Player2
+
+     delay(500); // wait 2 seconds before sending the message to ensure that player 1 has enough time display the ship status
+    sendMessage(show_text, waiting_player1);
+    delay(1000); // wait 2 seconds before sending the message to ensure that player 1 has enough time display the ship status
+
+    sendMessage(ship_status, player2_ship_status_char);
+    delay(100);
+
+
+
+    player2_ship_status = ""; // clean the ship status text for Player2
+
+    //neu
+    if (players[playerIndex].rockets_ammo > 0) {
+         // choose weapon
+      loadScreenChooseWeapon(players[playerIndex].rockets_ammo); // neu
+
+    // neu
+      // wait for user input for weapon choice
+     while (true)
+    {
+      if ( use_rockets == 1 || use_rockets == 2) {
+        Serial.println("Player has chosen weapon");
+        // reduce ammmo by 1
+        players[playerIndex].rockets_ammo--;
+        break;
+      } else if (use_rockets == 0) {
+        Serial.println("Player has chosen normal shot");
+        break;
+      }
+      
+      lv_task_handler();
+      lv_tick_inc(5);
+      delay(5);
+    }
+    clearScreen();
+
+    }
+
+
+
+
+
 
     // load coordinate screen
     loadScreen1();
@@ -471,12 +611,12 @@ void getUserInputForShootCommand(int &shotX, int &shotY, int playerIndex)
   else
   {
     // player 2  - send display to player 2 and wait for data from player 2
-    //clearScreen();
+    // clearScreen();
     displayHits(0);
     loadScreen2(waiting_player2);
     // clearScreen();
 
-    sendMessage("coordinates");
+    sendMessage(coordinates_msg);
 
     while (message_received == false)
     { // wait until message received
@@ -490,6 +630,11 @@ void getUserInputForShootCommand(int &shotX, int &shotY, int playerIndex)
     shotX = coordX;
     shotY = coordY;
 
+    // neu - get the weapon choice from player 2 - it is saved in the orientation_opponent variable because it is not needed anymore after setup ship
+    Serial.println("Weapon choice received from player 2: ");
+    Serial.println(orientation_opponent);
+    use_rockets = atoi(orientation_opponent);
+
     message_received = false; // status zurücksetzen, um auf die nächste Nachricht warten zu können
   }
 
@@ -500,7 +645,6 @@ void getUserInputForShootCommand(int &shotX, int &shotY, int playerIndex)
   Serial.println(shotY);
   clearScreen();
   coordinates = "";
-
 }
 
 void sendGameState()
@@ -541,7 +685,7 @@ void handleGameOver(int players_round)
     // send loose screen to other player
     char game_lost_player2[32];
     strcpy(game_lost_player2, game_lost.c_str());
-    sendMessage("show_text", game_lost_player2);
+    sendMessage(show_text, game_lost_player2);
 
     // show player 1 he has won
     loadScreen2(game_won.c_str());
@@ -552,7 +696,7 @@ void handleGameOver(int players_round)
     // send win screen to other player
     char game_won_player2[32];
     strcpy(game_won_player2, game_won.c_str());
-    sendMessage("show_text", game_won_player2);
+    sendMessage(show_text, game_won_player2);
 
     // show player 1 he has lost
     loadScreen2(game_lost.c_str());
@@ -561,11 +705,9 @@ void handleGameOver(int players_round)
 
   Serial.println("---------------game over---------------");
   delay(10000);
-
 }
 
-
-// only for testing porposes 
+// only for testing porposes
 void printBattlefield(int playerIndex)
 {
   // Print player's own battlefield
@@ -648,13 +790,11 @@ void displayHits(int playerIndex)
     {
       // Print 'X' for hits and 'O' for non-hit fields
       status = status + (players[playerIndex].ships[i].hits > j ? 'X' : 'O');
-      
     }
-   
 
     if (playerIndex == 0)
-    { // player1
-     Serial.print(status); // print ship status to console
+    {                       // player1
+      Serial.print(status); // print ship status to console
       Serial.println();
       shipStatus(status.c_str(), abstandX, abstandY);
       abstandX += 60;
@@ -665,7 +805,6 @@ void displayHits(int playerIndex)
       player2_ship_status = player2_ship_status + status + ","; // combine all ships status to one string seperated by ","
       status = "";
     }
-    
   }
   Serial.print(player2_ship_status);
 }
@@ -687,7 +826,7 @@ void setup()
     // send again after 5 seconds
     if (currentTime - lastSendTime >= sendInterval)
     {
-      sendMessage("show_text", welcome_player2);
+      sendMessage(show_text, welcome_player2);
       lastSendTime = currentTime;
       Serial.println("Gesendet");
     }
@@ -707,9 +846,8 @@ void setup()
   initializeDisplay();
   Serial.println("Display ok");
 
-    initializeGame();
+  initializeGame();
 }
-
 
 void loop()
 {
@@ -719,18 +857,42 @@ void loop()
   {
 
     int shotX, shotY;
-
+    
+    
     getUserInputForShootCommand(shotX, shotY, players_round);
+
+    //neu
+    if (use_rockets == 1) {
+      Serial.println("Player has chosen rockets horizontal");
+      // process shoot command for rockets
+      processShootCommand(players_round, (1 - players_round), shotX, shotY);
+      processShootCommand(players_round, (1 - players_round), shotX + 1, shotY); // shoot right
+      use_rockets = 3; // last shot - reset rockets status for next round
+      processShootCommand(players_round, (1 - players_round), shotX + 2, shotY); // shoot left
+    } else if (use_rockets == 2) {
+      Serial.println("Player has chosen rockets vertical");
+      // process shoot command for rockets
+      processShootCommand(players_round, (1 - players_round), shotX, shotY); // shoot middle
+      processShootCommand(players_round, (1 - players_round), shotX, shotY + 1); // shoot down
+      use_rockets = 3; // last shot - reset rockets status for next round
+      processShootCommand(players_round, (1 - players_round), shotX, shotY + 2); // shoot up
+    }
+    
+    else {
+      Serial.println("Player has chosen cannon");
+
     processShootCommand(players_round, (1 - players_round), shotX, shotY); // Assuming player 1 is index 0, and player 2 is index 1
     printBattlefield(players_round);
+    use_rockets = 3; // last shot - reset rockets status for next round
 
-    //   // Check if all ships of player 2 habe been destroyed
+   }
+       //   // Check if all ships of player 2 habe been destroyed
     if (isGameOver(1))
     {
       break;
     }
-
   }
+  
   lv_task_handler(); /* let the GUI do its work */
   lv_tick_inc(5);    /* tell LVGL how much time has passed */
   delay(5);          /* let this time pass */

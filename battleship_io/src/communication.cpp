@@ -86,7 +86,8 @@ void sendMessage(char screen_name[], char text[],  int coordX, int coordY){
 };
 
 // Callback when data is received
-void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+//void OnDataRecv(const esp_now_recv_info_t * mac, const uint8_t *incomingData, int len) {
+void OnDataRecv(const esp_now_recv_info_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
   Serial.print("Bytes received: ");
   Serial.println(len);
@@ -104,11 +105,11 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
   
 
-}
+};
 
 void registerCallback() {
   esp_now_register_recv_cb(OnDataRecv);
-}
+};
 
 
 

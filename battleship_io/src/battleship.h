@@ -33,6 +33,7 @@ extern const char* coordinates_opponent;
 extern const char* orientation_opponent;
 extern int coordX;
 extern int coordY;
+extern int use_rockets; // neu
 
 typedef struct struct_message {
     char screen_name[16];
@@ -57,6 +58,7 @@ struct Ship {
 struct Player {
   Ship ships[NUM_SHIPS];
   char battlefield[BOARD_SIZE][BOARD_SIZE];
+  int rockets_ammo = 3; // neu
 };
 
 // Display functions
@@ -73,6 +75,7 @@ void loadScreen2(const char* result);
 void loadScreen3(String shipName);
 void shipStatus(const char* shipStatus, int abstandX =0 , int abstandY =0);
 void clearScreen();
+void loadScreenChooseWeapon(int rockets_ammo); //neu
 
 void initalizeCommunication();
 void sendMessage(char screen_name[], char text[] =" ", int coordX = 0, int coordY = 0);

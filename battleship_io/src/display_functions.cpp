@@ -6,6 +6,8 @@ const char *shoot_result_text;
 const char *coordinate_label_text;
 const char *btn_label_horizontal = "Horizontal ---";
 const char *btn_label_vertical = "Vertikal |||";
+// const char *btn_label_normal = "Normal Schuss"; // new
+// const char *btn_label_specia = "Spezial Schuss"; // new
 const char *ship_status_text = "Schiff Status";
 const char *ship_orientation_for = "Schiffsorientierung fuer ";
 const char *enter_coordinates = "Koordinaten eingeben ";
@@ -16,15 +18,18 @@ lv_obj_t *ta;
 lv_obj_t *screen1;
 lv_obj_t *screen2;
 lv_obj_t *screen3;
+lv_obj_t *screen4; // neu
+int use_rockets=3; // neu - 0 = cannon, 1 = rockets, 3 = not chosen yet
 String coordinates = "";
 char orientation='X';
+
 
 
 // Screen variables
 SPIClass mySpi = SPIClass(VSPI);
 XPT2046_Touchscreen ts(XPT2046_CS, XPT2046_IRQ);
-static const uint16_t screenWidth = 320;
-static const uint16_t screenHeight = 240;
+static const uint16_t screenWidth = 240; //320;
+static const uint16_t screenHeight = 320; //240;
 
 /*LVGL draw into this buffer, 1/10 screen size usually works well. The size is in bytes*/
 #define DRAW_BUF_SIZE (TFT_HOR_RES * TFT_VER_RES / 10 /** (LV_COLOR_DEPTH / 8)*/)
@@ -40,8 +45,8 @@ void my_touchpad_read(lv_indev_t *indev, lv_indev_data_t *data) {
     data->state = LV_INDEV_STATE_REL;
   } else {
     TS_Point p = ts.getPoint();
-    touchX = map(p.x, 150, 4000, 1, screenWidth);  /* Touchscreen X calibration */
-    touchY = map(p.y, 209, 3750, 1, screenHeight); /* Touchscreen X calibration */
+    touchX = map(p.x, 200, 4000, 1, screenWidth);  /* Touchscreen X calibration */
+    touchY = map(p.y, 500, 3750, 1, screenHeight); /* Touchscreen X calibration */
     data->state = LV_INDEV_STATE_PR;
 
     /*Set the touchpoints*/
@@ -63,6 +68,9 @@ void initializeDisplay() {
   #if LV_USE_TFT_ESPI
   /*TFT_eSPI can be enabled lv_conf.h to initialize the display in a simple way*/
   disp = lv_tft_espi_create(TFT_HOR_RES, TFT_VER_RES, draw_buf, sizeof(draw_buf));
+  lv_display_set_resolution(disp, 240, 320);
+  lv_display_set_rotation(disp, LV_DISPLAY_ROTATION_270);
+
   #else
   /*Else create a display yourself*/
   disp = lv_display_create(TFT_HOR_RES, TFT_VER_RES);
@@ -71,17 +79,19 @@ void initializeDisplay() {
   #endif
   mySpi.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS); /* Start second SPI bus for touchscreen */
   ts.begin(mySpi);                                                  /* Touchscreen init */
-  ts.setRotation(3);                                                /* Landscape orientation */
+  ts.setRotation(2);                                                /* Landscape orientation */
 
   /*Initialize the (dummy) input device driver*/
   lv_indev_t *indev = lv_indev_create();
   lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER); /*Touchpad should have POINTER type*/
   lv_indev_set_read_cb(indev, my_touchpad_read);
+  lv_indev_set_display(indev, disp);
 
   //create 2 screens: 1 for the keyboards / 1 for shoot result display
   screen1 = lv_obj_create(NULL);
   screen2 = lv_obj_create(NULL);
   screen3 = lv_obj_create(NULL);
+  screen4 = lv_obj_create(NULL); // neu
 
 
 }
@@ -103,6 +113,40 @@ static void btn_event_vertical(lv_event_t * e)
     if(code == LV_EVENT_CLICKED) {
         Serial.println("Vertical Button Clicked");
         orientation = 'V';
+    }
+
+}
+
+//neu
+static void btn_event_rockets_h(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        Serial.println("Rockets  horizontal chosen");
+       use_rockets = 1;
+    }
+
+}
+//neu
+static void btn_event_rockets_v(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        Serial.println("Rockets vertical chosen");
+       use_rockets = 2;
+    }
+
+}
+//neu
+static void btn_event_cannon(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if(code == LV_EVENT_CLICKED) {
+        Serial.println("Cannon chosen");
+        use_rockets = 0;
     }
 
 }
@@ -150,10 +194,10 @@ void lv_battleship_keyboard_alpha() {
                                   LV_SYMBOL_BACKSPACE, " ", " ", " ", LV_SYMBOL_OK, NULL };
 
 
-  static const lv_buttonmatrix_ctrl_t kb_ctrl[] = { 8, 8, 8, 8,
-                                                    8, 8, 8, 8,
-                                                    8, 8,
-                                                    10, LV_BUTTONMATRIX_CTRL_HIDDEN | 2, LV_BUTTONMATRIX_CTRL_HIDDEN | 6, LV_BUTTONMATRIX_CTRL_HIDDEN | 2, 10 };
+  static const lv_btnmatrix_ctrl_t kb_ctrl[] = { (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8,
+                                                    (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8,
+                                                    (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8,
+                                                    (lv_btnmatrix_ctrl_t)10, (lv_btnmatrix_ctrl_t)(LV_BTNMATRIX_CTRL_HIDDEN | 2), (lv_btnmatrix_ctrl_t)(LV_BTNMATRIX_CTRL_HIDDEN | 6), (lv_btnmatrix_ctrl_t)(LV_BTNMATRIX_CTRL_HIDDEN | 2), (lv_btnmatrix_ctrl_t)10 };
 
   /*Create a keyboard and add the new map as USER_1 mode*/
   kb_alpha = lv_keyboard_create(screen1);
@@ -180,10 +224,10 @@ void lv_battleship_keyboard_num() {
                                   LV_SYMBOL_BACKSPACE, " ", " ", " ", LV_SYMBOL_OK, NULL };
 
 
-  static const lv_buttonmatrix_ctrl_t kb_ctrl[] = { 8, 8, 8, 8,
-                                                    8, 8, 8, 8,
-                                                    8, 8,
-                                                    10, LV_BUTTONMATRIX_CTRL_HIDDEN | 2, LV_BUTTONMATRIX_CTRL_HIDDEN | 6, LV_BUTTONMATRIX_CTRL_HIDDEN | 2, 10 };
+  static const lv_btnmatrix_ctrl_t kb_ctrl[] = { (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8,
+                                                    (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8,
+                                                    (lv_btnmatrix_ctrl_t)8, (lv_btnmatrix_ctrl_t)8,
+                                                    (lv_btnmatrix_ctrl_t)10, (lv_btnmatrix_ctrl_t)(LV_BTNMATRIX_CTRL_HIDDEN | 2), (lv_btnmatrix_ctrl_t)(LV_BTNMATRIX_CTRL_HIDDEN | 6), (lv_btnmatrix_ctrl_t)(LV_BTNMATRIX_CTRL_HIDDEN | 2), (lv_btnmatrix_ctrl_t)10 };
 
   /*Create a keyboard and add the new map as USER_1 mode*/
   kb_num = lv_keyboard_create(screen1);
@@ -271,6 +315,52 @@ void lv_orientation_btn(void)
     lv_obj_center(label);
 }
 
+// //new
+void lv_chooseweapon_btn(void)
+{
+    lv_obj_t * label;
+
+    lv_obj_t * btn_rockets_h = lv_btn_create(screen4);
+    lv_obj_add_event_cb(btn_rockets_h, btn_event_rockets_h, LV_EVENT_ALL, NULL);
+    lv_obj_align(btn_rockets_h, LV_ALIGN_CENTER, 0, -60);
+    lv_obj_set_height(btn_rockets_h, 60);
+    lv_obj_set_width(btn_rockets_h, 250);
+    lv_obj_set_style_text_font(btn_rockets_h, &lv_font_montserrat_20, 0);
+
+    label = lv_label_create(btn_rockets_h);
+    lv_label_set_text(label, "Raketen Horizontal");
+    lv_obj_center(label);
+
+    
+    //
+    //
+
+    lv_obj_t * btn_rockets_v = lv_btn_create(screen4);
+    lv_obj_add_event_cb(btn_rockets_v, btn_event_rockets_v, LV_EVENT_ALL, NULL);
+    lv_obj_align(btn_rockets_v, LV_ALIGN_CENTER, 0, 10);
+    lv_obj_set_height(btn_rockets_v, 60);
+    lv_obj_set_width(btn_rockets_v, 250);
+    lv_obj_set_style_text_font(btn_rockets_v, &lv_font_montserrat_20, 0);
+
+    label = lv_label_create(btn_rockets_v);
+    lv_label_set_text(label, "Raketen Vertikal");
+    lv_obj_center(label);
+
+    //
+    //
+
+    lv_obj_t * btn_cannon = lv_btn_create(screen4);
+    lv_obj_add_event_cb(btn_cannon, btn_event_cannon, LV_EVENT_ALL, NULL);
+    lv_obj_align(btn_cannon, LV_ALIGN_CENTER, 0, 80);
+    lv_obj_set_height(btn_cannon, 60);
+    lv_obj_set_width(btn_cannon, 250);
+    lv_obj_set_style_text_font(btn_cannon, &lv_font_montserrat_20, 0);
+
+    label = lv_label_create(btn_cannon);
+    lv_label_set_text(label, "Kanone X");
+    lv_obj_center(label);
+}
+
 void create_label_shoot_result(const char * shoot_result ="default"){
     lv_obj_t *label = lv_label_create( screen2 );
     lv_label_set_text( label, shoot_result );
@@ -305,12 +395,10 @@ void loadScreen2(const char* result ) {
   lv_screen_load(screen2);
      for (int i = 0; i < 500; i++) {
      lv_task_handler(); 
-    lv_tick_inc(5); 
-    delay(5); 
-  }
+     lv_tick_inc(5); 
+     delay(5); 
+   }
   
-    
-
 }
 
 
@@ -331,6 +419,16 @@ void loadScreen1(String shipName) {
 void shipStatus(const char* shipStatus, int abstandX, int abstandY){
   create_ship_label(shipStatus, abstandX, abstandY);
 
+}
 
+
+// neu
+void loadScreenChooseWeapon(int rockets_ammo) {
+  String label_text = "Waffe waehlen - Raketen: ";  
+  label_text +=  rockets_ammo;
+  coordinate_label_text = label_text.c_str(); // convert String to Char*
+  create_label(coordinate_label_text, screen4);
+  lv_chooseweapon_btn();
+  lv_screen_load(screen4);
 
 }
