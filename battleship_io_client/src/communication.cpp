@@ -86,38 +86,47 @@ void sendMessage(char screen_name[], char text[], char orientation[], int coordX
   }
 };
 
+
 // Callback when data is received
-void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
+void OnDataRecv(const esp_now_recv_info_t * mac, const uint8_t *incomingData, int len)
 {
   memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
-  Serial.print("Bytes received: ");
-  Serial.println(len);
-  Serial.println("Koordinaten: ");
+  // Serial.print("Bytes received: ");
+  // Serial.println(len);
+  // Serial.println("Koordinaten: ");
   // Serial.println(incomingReadings.coordinates_opponent);
-  Serial.println("Text: ");
-  Serial.println(incomingReadings.text);
+  // Serial.println("Text: ");
+  // Serial.println(incomingReadings.text);
+  //   Serial.println("screenname: ");
+  // Serial.println(incomingReadings.screen_name);
   // Determine which screen to display
   if (strcmp(incomingReadings.screen_name, "ship_setup") == 0)
   {
-    Serial.println("Show buttons + coordinates screen");
-    loadScreen3(incomingReadings.text);
+    // Serial.println("Show buttons + coordinates screen");
+    //loadScreen3(incomingReadings.text);
+    ship_setup(incomingReadings.text);
   }
   else if (strcmp(incomingReadings.screen_name, "hit") == 0)
   { // not needed
-    Serial.println("Show hit screen");
+    // Serial.println("Show hit screen");
     // Get orientation & coordinates from player 2
   }
   else if (strcmp(incomingReadings.screen_name, "show_text") == 0)
   {
+    // clearScreen();
     // just show the text on the screen
-    loadScreen2(incomingReadings.text);
-    clearScreen();
+    updateText(incomingReadings.text);
+    //loadScreen2(incomingReadings.text);
+    //clearScreen();
   }
   else if (strcmp(incomingReadings.screen_name, "coordinates") == 0)
   {
-    loadScreen1();
-    Serial.println("Show Coordinate screen");
-    clearScreen();
+
+    // clearScreen();
+     provide_coordinates();
+    //loadScreen1();
+    // Serial.println("Show Coordinate screen");
+    
     // Get orientation & coordinates from player 2
   }
   else if (strcmp(incomingReadings.screen_name, "PreviewLED") == 0)
@@ -125,15 +134,15 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
    
     // new logic
 
-    Serial.println("Shots: ");
-    Serial.println(incomingReadings.coordX);
-    Serial.println(incomingReadings.coordY);
+    // Serial.println("Shots: ");
+    // Serial.println(incomingReadings.coordX);
+    // Serial.println(incomingReadings.coordY);
 
     lightUpPreviewLED(incomingReadings.coordX, incomingReadings.coordY);
   }
   else if (strcmp(incomingReadings.screen_name, "HitLED") == 0)
   {
-
+    // Serial.println("Show Hit LED on the LED matrix");
   
     // new logic
     lightUpHitLED(incomingReadings.coordX, incomingReadings.coordY);
@@ -141,47 +150,52 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   else if (strcmp(incomingReadings.screen_name, "MissedLED") == 0)
   {
    
+    //  Serial.println("Missed Hit LED on the LED matrix");
     // new logic
     lightUpMissedLED(incomingReadings.coordX, incomingReadings.coordY);
   }
   else if (strcmp(incomingReadings.screen_name, "ship_status") == 0)
   {
 
-    char *status;
+    // char *status;
 
     // Using strtok to split the string
-    status = strtok(incomingReadings.text, ",");
+    // status = strtok(incomingReadings.text, ",");
 
-    int abstandX = -40;
-    int abstandY = -60;
-    int i = 0;
+    // int abstandX = -40;
+    // int abstandY = -60;
+    // int i = 0;
 
-    while (status != NULL)
-    {
+    update_shipStatus(incomingReadings.text);
 
-      Serial.println(status);
-      if (i == 2 || i == 4)
-      {
-        // start new line
-        abstandY += 20;
-        abstandX = -50; // little bit left from the start, so it is centrally aligned
-      }
+   
 
-      shipStatus(status, abstandX, abstandY);
-      abstandX += 60;
+    // while (status != NULL)
+    // {
 
-      status = strtok(NULL, ",");
-      i++;
-    }
+    //   Serial.println(status);
+    //   if (i == 2 || i == 4)
+    //   {
+    //     // start new line
+    //     abstandY += 20;
+    //     abstandX = -50; // little bit left from the start, so it is centrally aligned
+    //   }
+
+    //   shipStatus(status, abstandX, abstandY);
+    //   abstandX += 60;
+
+    //   status = strtok(NULL, ",");
+    //   i++;
+    // }
     
   }
 
   else
   {
     // this should not happen
-    Serial.println("Message could not be handled/resolved");
-    Serial.println(incomingReadings.screen_name);
-    Serial.println(incomingReadings.text);
+    // Serial.println("Message could not be handled/resolved");
+    // Serial.println(incomingReadings.screen_name);
+    // Serial.println(incomingReadings.text);
   }
 
 

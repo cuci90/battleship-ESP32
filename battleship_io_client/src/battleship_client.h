@@ -19,7 +19,22 @@
 #endif
 #include <XPT2046_Touchscreen.h>
 
+#define BOARD_SIZE 10
+#define NUM_SHIPS 5
+
+
+// Data structure to represent a ship
+struct Ship {
+  char orientation;  // 'H' for horizontal, 'V' for vertical
+  int size;
+  int hits;
+  int startX;
+  int startY;
+};
+
+
 extern String coordinates;
+
 
 typedef struct struct_message {
     char screen_name[16];
@@ -41,7 +56,14 @@ void loadScreen1(String shipName = "");
 void loadScreen2(const char* result);
 void loadScreen3(String shipName);
 void clearScreen();
-void shipStatus(const char* shipStatus, int abstandX, int abstandY);
+void shipStatus(const char* shipStatsus, int abstandX, int abstandY);
+boolean setupShip(char orientation);
+void updateText(const char* text);
+void ship_setup(const char* text);
+void provide_coordinates();
+void update_shipStatus(const char* shipStatus);
+void emptyTemporaryBoard();
+void loadScreen4();
 
 void initalizeCommunication();
 void sendMessage(char screen_name[], char text[], char orientation[]="X", int coordX = 0, int coordY = 0 );
