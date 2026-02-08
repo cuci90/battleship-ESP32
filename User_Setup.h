@@ -84,11 +84,11 @@
 // #define TFT_WIDTH  80
 // #define TFT_WIDTH  128
 // #define TFT_WIDTH  172 // ST7789 172 x 320
-#define TFT_WIDTH  240 // ST7789 240 x 240 and 240 x 320
+            #define TFT_WIDTH  240 // ST7789 240 x 240 and 240 x 320                                                      -----------
 // #define TFT_HEIGHT 160
 // #define TFT_HEIGHT 128
 // #define TFT_HEIGHT 240 // ST7789 240 x 240
-#define TFT_HEIGHT 320 // ST7789 240 x 320
+               #define TFT_HEIGHT 320 // ST7789 240 x 320                         -----------                             --------------
 // #define TFT_HEIGHT 240 // GC9A01 240 x 240
 
 // For ST7735 ONLY, define the type of display, originally this was based on the
@@ -312,7 +312,8 @@
 
 // Comment out the #define below to stop the SPIFFS filing system and smooth font code being loaded
 // this will save ~20kbytes of FLASH
-#define SMOOTH_FONT
+//Change MC - einkommentiert
+//#define SMOOTH_FONT
 
 
 // ##################################################################################
